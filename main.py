@@ -33,12 +33,13 @@ bird_midflap = pygame.image.load('img/bluebird-midflap.png').convert()
 bird_upflap = pygame.image.load('img/bluebird-upflap.png').convert()
 bird_frames = [bird_downflap, bird_midflap, bird_upflap]
 
+bird_index = 0
+bird_surface = bird_frames[bird_index]
+bird_rect = bird_surface.get_rect(center=(50, screen_h/2))
+
 # game variables
 game_active = True
-bird_rect = bird_upflap.get_rect(center=(50, screen_h/2))
 bird_yvelocity = 0
-bird_animation_counter = 0
-bird_animation_speed = 15
 gravity = 0.15
 pipes = []
 pipe_pos = [200, 275, 350]
@@ -47,7 +48,10 @@ floor_x = 0
 floor_w = 336
 floor_h = 112
 
-SPAWNPIPE = pygame.USEREVENT
+BIRDFLAP = pygame.USEREVENT
+pygame.time.set_timer(BIRDFLAP, 100)
+
+SPAWNPIPE = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWNPIPE, 1500)
 
 while True:
@@ -63,12 +67,20 @@ while True:
                 bird_rect.center = (50, screen_h/2)
                 bird_yvelocity = 0
                 pipes.clear()
+        if event.type == BIRDFLAP and game_active:
+            bird_index += 1
+            if bird_index >= len(bird_frames):
+                bird_index = 0
+            bird_surface = bird_frames[bird_index]
+            bird_rect = bird_surface.get_rect(center=(50, bird_rect.centery))
+
         if event.type == SPAWNPIPE and game_active:
             rdm_pipe_pos = random.choice(pipe_pos)
             bottom_pipe = Pipe(bottom_pipe_surface, midtop=(500, rdm_pipe_pos))
             top_pipe = Pipe(top_pipe_surface, midbottom=(500, rdm_pipe_pos - 150))
             pipes.extend([bottom_pipe, top_pipe])
 
+    # background
     screen.blit(bg_surface, (0, 0))
 
     if game_active:
@@ -77,13 +89,6 @@ while True:
         bird_rect.centery += bird_yvelocity
         if bird_rect.top <= -50 or bird_rect.bottom >= screen_h - floor_h:
             game_active = False
-
-        bird_index = floor(bird_animation_counter / bird_animation_speed)
-        if bird_index >= len(bird_frames) - 1:
-            bird_index = 0
-            bird_animation_counter = 0
-        bird_surface = bird_frames[bird_index]
-        bird_animation_counter += 1
 
         rotated_bird = pygame.transform.rotate(bird_surface, -bird_yvelocity * 5)
         screen.blit(rotated_bird, bird_rect)
