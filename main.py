@@ -1,6 +1,5 @@
 import pygame
 import random
-from math import floor
 from Pipe import Pipe
 
 
@@ -10,13 +9,31 @@ def draw_floor():
     screen.blit(floor_surface, (floor_x, screen_h - floor_h))
 
 
-def game_over():
-    pygame.quit()
+def render_score(game_state):
+    if game_state == 'running':
+        score_surface = game_main_font.render(f'Score: {round(score)}', True, (255, 255, 255))
+        score_rect = score_surface.get_rect(center=(screen_w/2, 30))
+        screen.blit(score_surface, score_rect)
+    elif game_state == 'game_over':
+        go_surface = game_big_font.render('GAME OVER', True, (255, 255, 255))
+        go_rect = go_surface.get_rect(center=(screen_w/2, 120))
+        screen.blit(go_surface, go_rect)
+
+        score_surface = game_main_font.render(f'Score: {round(score)}', True, (255, 255, 255))
+        score_rect = score_surface.get_rect(center=(screen_w / 2, 220))
+        screen.blit(score_surface, score_rect)
+
+        high_score_surface = game_main_font.render(f'High Score: {round(high_score)}', True, (255, 255, 255))
+        high_score_rect = high_score_surface.get_rect(center=(screen_w / 2, 270))
+        screen.blit(high_score_surface, high_score_rect)
 
 
+pygame.mixer.pre_init(channels=1, buffer=256)
 pygame.init()
 pygame.display.set_caption('FlappyBird')
 clock = pygame.time.Clock()
+game_main_font = pygame.font.Font('04B_19.ttf', 30)
+game_big_font = pygame.font.Font('04B_19.ttf', 50)
 
 screen_w = 288
 screen_h = 512
@@ -37,12 +54,18 @@ bird_index = 0
 bird_surface = bird_frames[bird_index]
 bird_rect = bird_surface.get_rect(center=(50, screen_h/2))
 
+# loading game sounds
+flap_sound = pygame.mixer.Sound('sounds/sfx_wing.wav')
+death_sound = pygame.mixer.Sound('sounds/sfx_hit.wav')
+
 # game variables
 game_active = True
 bird_yvelocity = 0
 gravity = 0.15
 pipes = []
 pipe_pos = [200, 275, 350]
+score = 0
+high_score = 0
 
 floor_x = 0
 floor_w = 336
@@ -62,11 +85,13 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and game_active:
                 bird_yvelocity = -4
+                flap_sound.play()
             elif event.key == pygame.K_SPACE and not game_active:
                 game_active = True
                 bird_rect.center = (50, screen_h/2)
                 bird_yvelocity = 0
                 pipes.clear()
+                score = 0
         if event.type == BIRDFLAP and game_active:
             bird_index += 1
             if bird_index >= len(bird_frames):
@@ -84,11 +109,15 @@ while True:
     screen.blit(bg_surface, (0, 0))
 
     if game_active:
+        score += 0.02
+
         # bird
         bird_yvelocity += gravity
         bird_rect.centery += bird_yvelocity
         if bird_rect.top <= -50 or bird_rect.bottom >= screen_h - floor_h:
             game_active = False
+            death_sound.play()
+            high_score = score if score > high_score else high_score
 
         rotated_bird = pygame.transform.rotate(bird_surface, -bird_yvelocity * 5)
         screen.blit(rotated_bird, bird_rect)
@@ -100,10 +129,14 @@ while True:
                 pipes.remove(pipe)
             if pipe.rect.colliderect(bird_rect):
                 game_active = False
+                death_sound.play()
+                high_score = score if score > high_score else high_score
                 pipes.remove(pipe)
             pipe.draw(screen)
+
+        render_score('running')
     else:
-        pass
+        render_score('game_over')
     # floor
     draw_floor()
     if floor_x + floor_w < screen_w:
