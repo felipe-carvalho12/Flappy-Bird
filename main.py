@@ -13,18 +13,18 @@ def draw_floor():
 def render_score(game_state):
     if game_state == 'running':
         score_surface = game_main_font.render(f'Score: {round(score)}', True, (255, 255, 255))
-        score_rect = score_surface.get_rect(center=(screen_w/2, 30))
+        score_rect = score_surface.get_rect(center=(int(screen_w/2), 30))
         screen.blit(score_surface, score_rect)
     elif game_state == 'game_over':
-        go_rect = game_over_surface.get_rect(center=(screen_w/2, 120))
+        go_rect = game_over_surface.get_rect(center=(int(screen_w/2), 120))
         screen.blit(game_over_surface, go_rect)
 
         score_surface = game_main_font.render(f'Score: {round(score)}', True, (255, 255, 255))
-        score_rect = score_surface.get_rect(center=(screen_w / 2, 220))
+        score_rect = score_surface.get_rect(center=(int(screen_w/2), 220))
         screen.blit(score_surface, score_rect)
 
         high_score_surface = game_main_font.render(f'High Score: {round(high_score)}', True, (255, 255, 255))
-        high_score_rect = high_score_surface.get_rect(center=(screen_w / 2, 270))
+        high_score_rect = high_score_surface.get_rect(center=(int(screen_w/2), 270))
         screen.blit(high_score_surface, high_score_rect)
 
 
@@ -39,11 +39,11 @@ screen_h = 512
 screen = pygame.display.set_mode((screen_w, screen_h))
 
 # loading game images
-bg_surface = pygame.image.load('img/background-day.png').convert()
-floor_surface = pygame.image.load('img/floor.png').convert()
-bottom_pipe_surface = pygame.image.load('img/pipe-green.png').convert()
+bg_surface = pygame.image.load('img/background-night.png').convert()
+floor_surface = pygame.image.load('img/floor2.png').convert()
+bottom_pipe_surface = pygame.image.load('img/pipe-purple.png').convert()
 top_pipe_surface = pygame.transform.rotate(bottom_pipe_surface, 180)
-game_over_surface = pygame.image.load('img/gameover.png')
+game_over_surface = pygame.image.load('img/gameover2.png')
 # coin images
 coin_1 = pygame.image.load('img/coin_1.png').convert_alpha()
 coin_2 = pygame.image.load('img/coin_2.png').convert_alpha()
@@ -51,13 +51,11 @@ coin_3 = pygame.image.load('img/coin_3.png').convert_alpha()
 coin_4 = pygame.image.load('img/coin_4.png').convert_alpha()
 coin_5 = pygame.image.load('img/coin_5.png').convert_alpha()
 coin_6 = pygame.image.load('img/coin_6.png').convert_alpha()
-coin_7 = pygame.image.load('img/coin_7.png').convert_alpha()
-coin_8 = pygame.image.load('img/coin_8.png').convert_alpha()
-coin_frames = [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6, coin_7, coin_8]
+coin_frames = [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6]
 
 coin_index = 0
 coin_surface = coin_frames[coin_index]
-coin_rect = coin_surface.get_rect(center=(screen_w/2, screen_h/2))
+coin_rect = coin_surface.get_rect(center=(int(screen_w/2), int(screen_h/2)))
 # bird images
 bird_downflap = pygame.image.load('img/bluebird-downflap.png').convert()
 bird_midflap = pygame.image.load('img/bluebird-midflap.png').convert()
@@ -66,7 +64,7 @@ bird_frames = [bird_downflap, bird_midflap, bird_upflap]
 
 bird_index = 0
 bird_surface = bird_frames[bird_index]
-bird_rect = bird_surface.get_rect(center=(50, screen_h/2))
+bird_rect = bird_surface.get_rect(center=(50, int(screen_h/2)))
 
 # loading game sounds
 score_sound = pygame.mixer.Sound('sounds/sfx_point.wav')
@@ -76,7 +74,7 @@ death_sound = pygame.mixer.Sound('sounds/sfx_hit.wav')
 # game variables
 game_active = True
 bird_yvelocity = 0
-gravity = 0.15
+gravity = 0.09
 coins = []
 coin_pos = [100, 250, 300]
 pipes = []
@@ -107,11 +105,11 @@ while True:
             break
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and game_active:
-                bird_yvelocity = -4
+                bird_yvelocity = -3
                 flap_sound.play()
             elif event.key == pygame.K_SPACE and not game_active:
                 game_active = True
-                bird_rect.center = (50, screen_h/2)
+                bird_rect.center = (50, int(screen_h/2))
                 bird_yvelocity = 0
                 coins.clear()
                 pipes.clear()
@@ -128,14 +126,14 @@ while True:
                 coin_index = 1
             for coin in coins:
                 coin.surface = coin_frames[coin_index]
-                coin.rect = coin.surface.get_rect(center=(coin.rect.centerx, coin.rect.centery))
+                coin.rect = coin.surface.get_rect(center=(int(coin.rect.centerx), int(coin.rect.centery)))
 
         if event.type == BIRDFLAP and game_active:
             bird_index += 1
             if bird_index >= len(bird_frames):
                 bird_index = 0
             bird_surface = bird_frames[bird_index]
-            bird_rect = bird_surface.get_rect(center=(50, bird_rect.centery))
+            bird_rect = bird_surface.get_rect(center=(50, int(bird_rect.centery)))
 
         if event.type == SPAWNPIPE and game_active:
             rdm_pipe_pos = random.choice(pipe_pos)
@@ -162,7 +160,7 @@ while True:
 
         # bird
         bird_yvelocity += gravity
-        bird_rect.centery += bird_yvelocity
+        bird_rect.centery += int(bird_yvelocity)
         if bird_rect.top <= -50 or bird_rect.bottom >= screen_h - floor_h:
             game_active = False
             death_sound.play()
