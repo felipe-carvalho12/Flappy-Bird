@@ -1,4 +1,5 @@
 import pygame
+import sys
 import random
 from Coin import Coin
 from Pipe import Pipe
@@ -102,7 +103,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            break
+            sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and game_active:
                 bird_yvelocity = -3
